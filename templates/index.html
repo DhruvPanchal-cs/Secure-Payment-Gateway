@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Gateway Role Selection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f7f7f9; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
 
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-10 space-y-8 border-t-8 border-indigo-600">
+        <h2 class="text-4xl font-extrabold text-center text-gray-900">Secure Gateway Simulator</h2>
+        <p class="text-center text-lg text-gray-600">
+            Select your access role to demonstrate Role-Based Access Control (RBAC).
+        </p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="{% if category == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-green-100 border-green-400 text-green-700{% endif %} border px-4 py-3 rounded relative text-sm font-medium" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Admin Card -->
+            <div class="p-6 bg-blue-50 hover:bg-blue-100 rounded-xl transition duration-200 border border-blue-200 text-center space-y-4">
+                <svg class="w-12 h-12 text-blue-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <h3 class="text-xl font-bold text-blue-800">System Administrator</h3>
+                <p class="text-sm text-gray-600">Monitor audit logs and system activity (PCI DSS Req 10).</p>
+                <a href="{{ url_for('admin_login') }}" class="inline-block w-full py-2 px-4 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    Admin Login
+                </a>
+            </div>
+
+            <!-- Merchant Card -->
+            <div class="p-6 bg-green-50 hover:bg-green-100 rounded-xl transition duration-200 border border-green-200 text-center space-y-4">
+                <svg class="w-12 h-12 text-green-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <h3 class="text-xl font-bold text-green-800">Payment Merchant</h3>
+                <p class="text-sm text-gray-600">Access the secure payment processing form (PCI DSS Req 3).</p>
+                <a href="{{ url_for('merchant_login') }}" class="inline-block w-full py-2 px-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                    Merchant Login
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

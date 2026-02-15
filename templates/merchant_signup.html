@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f7fdee; }
+
+        /* password live-check styles (kept consistent with admin page) */
+        .pw-checklist { max-width: 520px; margin: 8px 0 12px; padding: 12px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; }
+        .pw-item { display:flex; gap:8px; align-items:center; font-size:0.95rem; color:#6b7280; margin:6px 0; }
+        .pw-item.ok { color:#059669; }    /* green */
+        .pw-item.fail { color:#ef4444; }  /* red */
+        .pw-dot { width:12px; height:12px; border-radius:50%; background:#e5e7eb; display:inline-block; flex:0 0 12px; }
+        .pw-dot.ok { background:#059669; }
+        .pw-dot.fail { background:#ef4444; }
+        .pw-hint { font-size:0.85rem; color:#9ca3af; margin-top:6px; }
+        .pw-submit-disabled { opacity:0.6; cursor:not-allowed; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 space-y-6">
+        <h2 class="text-3xl font-bold text-center text-green-700">Merchant Sign Up</h2>
+        <p class="text-center text-gray-500">Register a Payment Merchant account.</p>
+
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form action="{{ url_for('merchant_signup') }}" method="POST" class="space-y-4">
+            
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email Address (for OTP)</label>
+                <input type="email" id="email" name="email" required
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                       placeholder="you@example.com">
+            </div>
+
+            <!-- Password (strong policy) -->
+            <div>
+                <label for="merchant_password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="merchant_password" name="password" required
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                       placeholder="Minimum 12 chars, mix of upper/lower/digit/special">
+            </div>
+
+            <div>
+                <label for="merchant_confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input type="password" id="merchant_confirm_password" name="confirm_password" required
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500"
+                       placeholder="Re-enter password">
+            </div>
+
+            <!-- Checklist injected by JS -->
+            <div id="merchant_pw_checklist" class="mt-3"></div>
+
+            <button id="merchant_signup_submit" type="submit"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                Register Merchant Account
+            </button>
+        </form>
+
+        <div class="text-center text-sm">
+            <a href="{{ url_for('merchant_login') }}" class="font-medium text-green-600 hover:text-green-500">
+                Already registered? Log In
+            </a>
+        </div>
+    </div>
+
+    <!-- Live password-check script (client-side convenience only; server still enforces policy & reuse checks) -->
+    <script>
+    (function() {
+      // Policy (must match server-side)
+      const MIN_LENGTH = 12;
+      const COMMON = new Set([
+        "password","123456","123456789","qwerty","12345678","111111","1234567",
+        "iloveyou","123123","abc123","password1","admin","letmein","welcome","monkey"
+      ].map(s => s.toLowerCase()));
+
+      function $(sel){ return document.querySelector(sel); }
+
+      function wire() {
+        const passwordInput = $('#merchant_password');
+        const confirmInput = $('#merchant_confirm_password');
+        const submitBtn = $('#merchant_signup_submit');
+        const checklistRoot = $('#merchant_pw_checklist');
+        if (!passwordInput || !checklistRoot) return;
+
+        checklistRoot.innerHTML = `
+          <div class="pw-checklist">
+            <div class="pw-item" data-rule="length"><span class="pw-dot"></span> Minimum ${MIN_LENGTH} characters</div>
+            <div class="pw-item" data-rule="upper"><span class="pw-dot"></span> At least one uppercase letter (A-Z)</div>
+            <div class="pw-item" data-rule="lower"><span class="pw-dot"></span> At least one lowercase letter (a-z)</div>
+            <div class="pw-item" data-rule="digit"><span class="pw-dot"></span> At least one digit (0-9)</div>
+            <div class="pw-item" data-rule="special"><span class="pw-dot"></span> At least one special character (e.g. !@#$%^&*)</div>
+            <div class="pw-item" data-rule="common"><span class="pw-dot"></span> Not a common password</div>
+            <div class="pw-item" data-rule="match"><span class="pw-dot"></span> Password and confirmation match</div>
+            <div class="pw-hint">Tip: Use a passphrase or password manager to generate long, unique passwords.</div>
+          </div>`;
+
+        const items = {};
+        checklistRoot.querySelectorAll('.pw-item').forEach(el => items[el.getAttribute('data-rule')] = el);
+
+        function setOk(rule, ok) {
+          const el = items[rule];
+          if (!el) return;
+          const dot = el.querySelector('.pw-dot');
+          el.classList.toggle('ok', ok);
+          el.classList.toggle('fail', !ok);
+          dot.classList.toggle('ok', ok);
+          dot.classList.toggle('fail', !ok);
+        }
+
+        function validateAll() {
+          const pw = passwordInput.value || "";
+          const confirm = confirmInput ? (confirmInput.value || "") : "";
+
+          const hasLen = pw.length >= MIN_LENGTH;
+          const hasUpper = /[A-Z]/.test(pw);
+          const hasLower = /[a-z]/.test(pw);
+          const hasDigit = /[0-9]/.test(pw);
+          const hasSpecial = /[^A-Za-z0-9]/.test(pw);
+          const isCommon = COMMON.has(pw.toLowerCase()) && pw.length > 0;
+          const matches = (confirmInput ? (pw === confirm && pw.length>0) : true);
+
+          setOk('length', hasLen);
+          setOk('upper', hasUpper);
+          setOk('lower', hasLower);
+          setOk('digit', hasDigit);
+          setOk('special', hasSpecial);
+          setOk('common', !isCommon);
+          setOk('match', matches);
+
+          const passed = hasLen && hasUpper && hasLower && hasDigit && hasSpecial && !isCommon && matches;
+
+          if (submitBtn) {
+            submitBtn.disabled = !passed;
+            submitBtn.classList.toggle('pw-submit-disabled', !passed);
+          }
+          return passed;
+        }
+
+        passwordInput.addEventListener('input', validateAll);
+        if (confirmInput) confirmInput.addEventListener('input', validateAll);
+        validateAll();
+
+        const form = passwordInput.closest('form');
+        if (form) {
+          form.addEventListener('submit', function(e) {
+            if (!validateAll()) {
+              e.preventDefault();
+              const firstFail = checklistRoot.querySelector('.pw-item.fail');
+              if (firstFail) firstFail.scrollIntoView({behavior:'smooth', block:'center'});
+              return false;
+            }
+          });
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', wire);
+    })();
+    </script>
+</body>
+</html>

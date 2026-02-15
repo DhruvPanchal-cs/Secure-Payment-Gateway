@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Security Logs - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <header class="bg-blue-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-white">Admin Security Logs</h1>
+      <nav class="flex space-x-3 items-center">
+        <a href="{{ url_for('admin_dashboard') }}" class="px-3 py-2 rounded-lg bg-gray-200 text-blue-800">Back to Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-10">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 items-end">
+      <div class="md:col-span-2">
+        <label class="text-sm text-gray-600">Search</label>
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="activity, user, details"
+               class="w-full px-3 py-2 rounded border border-gray-300">
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-600">Severity</label>
+        <select name="severity" class="w-full px-3 py-2 rounded border border-gray-300">
+          {% for opt in severity_options %}
+            <option value="{{ opt }}" {% if (severity or 'ALL') == opt %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-600">Start date</label>
+        <input type="date" name="start" value="{{ start or '' }}" class="w-full px-3 py-2 rounded border border-gray-300">
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-600">End date</label>
+        <input type="date" name="end" value="{{ end or '' }}" class="w-full px-3 py-2 rounded border border-gray-300">
+      </div>
+
+      <div>
+        <label class="text-sm text-gray-600">Per page</label>
+        <select name="per_page" class="w-full px-3 py-2 rounded border border-gray-300">
+          {% for p in [10,20,50,100] %}
+            <option value="{{ p }}" {% if per_page == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="md:col-span-6 flex gap-2">
+        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Apply Filters</button>
+        <a href="{{ url_for('admin_logs') }}" class="px-4 py-2 rounded bg-gray-200">Clear</a>
+        <a href="{{ url_for('admin_logs', q=q, severity=severity, start=start, end=end, export='csv') }}" class="px-4 py-2 rounded bg-yellow-300 text-blue-800">Export CSV</a>
+        <a href="{{ url_for('admin_logs', q=q, severity=severity, start=start, end=end, export='json') }}" class="px-4 py-2 rounded bg-yellow-300 text-blue-800">Export JSON</a>
+      </div>
+    </form>
+
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+          <tr>
+            <th class="p-3 text-left">ID</th>
+            <th class="p-3 text-left">Timestamp (UTC)</th>
+            <th class="p-3 text-left">Type</th>
+            <th class="p-3 text-left">Severity</th>
+            <th class="p-3 text-left">User</th>
+            <th class="p-3 text-left">Role</th>
+            <th class="p-3 text-left">IP</th>
+            <th class="p-3 text-left">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in logs %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3">{{ l.id }}</td>
+            <td class="p-3">{{ l.timestamp }}</td>
+            <td class="p-3">{{ l.activity_type }}</td>
+            <td class="p-3">
+              {% set sev = (l.severity or 'INFO').upper() %}
+              {% if sev == 'INFO' %}
+                <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">{{ sev }}</span>
+              {% elif sev == 'WARNING' %}
+                <span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded">{{ sev }}</span>
+              {% elif sev == 'ERROR' %}
+                <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded">{{ sev }}</span>
+              {% elif sev == 'CRITICAL' %}
+                <span class="px-2 py-1 text-xs font-semibold bg-red-300 text-white rounded">{{ sev }}</span>
+              {% else %}
+                <span class="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded">{{ sev }}</span>
+              {% endif %}
+            </td>
+            <td class="p-3">{{ l.user_email or 'N/A' }}</td>
+            <td class="p-3">{{ l.role or '—' }}</td>
+            <td class="p-3">{{ l.ip_address or '—' }}</td>
+            <td class="p-3 max-w-lg truncate" title="{{ l.details }}">{{ l.details }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-8 text-gray-500">No logs found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="p-4 flex items-center justify-between bg-gray-50">
+        <div class="text-gray-600">Page {{ pagination.page }} of {{ pagination.pages or 1 }}</div>
+        <div class="flex gap-2">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for('admin_logs', page=1, per_page=per_page, q=q, severity=severity, start=start, end=end) }}" class="px-3 py-1 rounded bg-gray-200">First</a>
+            <a href="{{ url_for('admin_logs', page=pagination.prev_num, per_page=per_page, q=q, severity=severity, start=start, end=end) }}" class="px-3 py-1 rounded bg-gray-200">Prev</a>
+          {% else %}
+            <span class="px-3 py-1 rounded bg-gray-100 text-gray-400">First</span>
+            <span class="px-3 py-1 rounded bg-gray-100 text-gray-400">Prev</span>
+          {% endif %}
+
+          <span class="px-3 py-1 rounded bg-blue-600 text-white">{{ pagination.page }}</span>
+
+          {% if pagination.has_next %}
+            <a href="{{ url_for('admin_logs', page=pagination.next_num, per_page=per_page, q=q, severity=severity, start=start, end=end) }}" class="px-3 py-1 rounded bg-gray-200">Next</a>
+            <a href="{{ url_for('admin_logs', page=pagination.pages, per_page=per_page, q=q, severity=severity, start=start, end=end) }}" class="px-3 py-1 rounded bg-gray-200">Last</a>
+          {% else %}
+            <span class="px-3 py-1 rounded bg-gray-100 text-gray-400">Next</span>
+            <span class="px-3 py-1 rounded bg-gray-100 text-gray-400">Last</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
