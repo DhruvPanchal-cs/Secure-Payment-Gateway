@@ -6,71 +6,55 @@ This project focuses on how payments are secured, not just how payments work.
 
 🚀 Key Security Features
 
-Strong Authentication
-
-bcrypt password hashing
-
-Email-based OTP (MFA)
-
-Account lockout after failed attempts
-
-Session timeout & secure cookies
-
-Payment Data Protection
-
-AES-256 encryption for sensitive card data
-
-Tokenization (no raw card data stored)
-
-Masked PAN handling (PCI-DSS aligned)
-
-Fraud & Risk Controls
-
-Device & IP-based login risk evaluation
-
-Brute-force attack protection
-
-Suspicious login blocking
-
-Audit & Monitoring
-
-Centralized security logging
-
-Transaction audit trail
-
-Admin security log dashboard
+1) Strong Authentication
+2) bcrypt password hashing
+3) Email-based OTP (MFA)
+4)Account lockout after failed attempts
+5)Session timeout & secure cookies
+6)Payment Data Protection
+7)AES-256 encryption for sensitive card data
+8)Tokenization (no raw card data stored)
+9)asked PAN handling (PCI-DSS aligned)
+10)Fraud & Risk Controls
+11)Device & IP-based login risk evaluation
+12)Brute-force attack protection
+13)Suspicious login blocking
+14)Audit & Monitoring
+15)Centralized security logging
+16)Transaction audit trail
+17)Admin security log dashboard
 
 🛠️ Tech Stack
 
-Backend: Python, Flask
+1)Backend: Python, Flask
 
-Database: PostgreSQL
+2)Database: PostgreSQL
 
-Security: bcrypt, AES-256, OTP (Email MFA)
+3)ecurity: bcrypt, AES-256, OTP (Email MFA)
 
-Frontend: HTML, Tailwind CSS
+4)Frontend: HTML, Tailwind CSS
 
-Architecture: Role-based access control (Admin / Merchant)
+5)Architecture: Role-based access control (Admin / Merchant)
 
 🎯 What This Project Demonstrates
 
-Practical implementation of secure payment workflows
+1)Practical implementation of secure payment workflows
 
-Defense-in-depth approach for web applications
+2)Defense-in-depth approach for web applications
 
-Secure authentication & authorization design
+3)Secure authentication & authorization design
 
-Real-world cybersecurity concepts applied to fintech systems
+4)Real-world cybersecurity concepts applied to fintech systems
 
 🧠 Ideal For
 
-Cybersecurity / AppSec roles
+1)Cybersecurity / AppSec roles
 
-Payment security & fintech security discussions
+2)Payment security & fintech security discussions
 
-Demonstrating PCI-DSS awareness in interviews
+3)Demonstrating PCI-DSS awareness in interviews
 
-Academic & practical security projects
+4)Academic & practical security projects
 
 ⚠️ Disclaimer
 
